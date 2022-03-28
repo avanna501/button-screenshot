@@ -1,6 +1,8 @@
 #include <QApplication>
 #include <QScreen>
 #include <QComboBox>
+#include <QtCore>
+#include <QCoreApplication>
 
 #include "screenshot.h"
 

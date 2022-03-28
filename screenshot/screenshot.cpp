@@ -2,6 +2,11 @@
 #include <QComboBox>
 #include "screenshot.h"
 #include <iostream>
+#include <QtConcurrent>
+#include <QtConcurrent>
+
+//#include <QFuture>
+
 using namespace std;
 int  i=1;
 //! [0]
@@ -28,19 +33,6 @@ Screenshot::Screenshot()
     ComboBox = new QComboBox;
     QStringList list=(QStringList()<<"1"<<"1/2"<<"1/4"<<"1/8");
     ComboBox->addItems(list);
-//    connect(ComboBox, QOverload<int>::of(&QComboBox::highlighted),
-//        [=](int index){ i=2^index; cout<< i; });
-
-
-//    connect(ComboBox, SIGNAL(currentIndexChanged(int)), [=](int index)
-//        {
-//            i=2^index;
-//            cout<< i;
-//        });
-
-//
-
-
 
     hideThisWindowCheckBox = new QCheckBox(tr("Hide This Window"), optionsGroupBox);
 
@@ -58,16 +50,9 @@ Screenshot::Screenshot()
     connect(newScreenshotButton, &QPushButton::clicked, this, &Screenshot::newScreenshot);
     buttonsLayout->addWidget(newScreenshotButton);
 
-//  connect(ComboBox, QOverload<int>::of(&QComboBox::highlighted),
-//          [=](int index) , &QWidget::close);
-
-//            connect(ComboBox, QOverload<int>::of(&QComboBox::highlighted),
-//                [=](int index)
-//    {
-//        i = &index;
-//    });
-
- //   buttonsLayout->addWidget(ComboBox);
+//  connect(ComboBox, QOverload<int>::of(&QComboBox::highlighted),[=](int index) , &QWidget::close);
+//           connect(ComboBox, QOverload<int>::of(&QComboBox::highlighted),[=](int index)  { i = &index; });
+//  buttonsLayout->addWidget(ComboBox);
 
     QPushButton *saveScreenshotButton = new QPushButton(tr("Save Screenshot"), this);
     connect(saveScreenshotButton, &QPushButton::clicked, this, &Screenshot::saveScreenshot);
@@ -77,16 +62,8 @@ Screenshot::Screenshot()
     connect(quitScreenshotButton, &QPushButton::clicked, this, &QWidget::close);
     buttonsLayout->addWidget(quitScreenshotButton);
 
-
-
-
-
     buttonsLayout->addStretch();
     mainLayout->addLayout(buttonsLayout);
-
-
-
-
 
     shootScreen();
     delaySpinBox->setValue(5);
@@ -100,15 +77,11 @@ Screenshot::Screenshot()
 //! [1]
 void Screenshot::resizeEvent(QResizeEvent * /* event */)
 {
-//    if (i=0)
-//    {
         QSize scaledSize = originalPixmap.size();
 
         scaledSize.scale(screenshotLabel->size(), Qt::KeepAspectRatio);
         if (scaledSize != screenshotLabel->pixmap(Qt::ReturnByValue).size())
             updateScreenshotLabel();
-//    }
-
 }
 //! [1]
 
@@ -124,13 +97,18 @@ void Screenshot::newScreenshot()
 //! [2]
 
 //! [3]
+QPixmap Screenshot::scale(QPixmap pixmap)
+{
+    pixmap =pixmap.scaled(int (1366/i),int (768/i),Qt::KeepAspectRatio);
+    return pixmap;
+}
+
 void Screenshot::saveScreenshot()
 {
-//    cout<<"ComboBox->currentIndex():"<<
-//          ComboBox->currentIndex()<<endl;
     cout<<"ComboBox->currentIndex():"<<
           ComboBox->currentIndex()<<endl;
     i=pow(2,(ComboBox->currentIndex()));
+
     cout<<"i="<<i<<endl;
 
     const QString format = "png";
@@ -138,7 +116,16 @@ void Screenshot::saveScreenshot()
     if (initialPath.isEmpty())
         initialPath = QDir::currentPath();
     initialPath += tr("/untitled.") + format;
+    QFuture <QPixmap> f = QtConcurrent::run(&Screenshot::scale,this,originalPixmap);
+    QFutureWatcher<QPixmap>* obj = new QFutureWatcher<QPixmap>;
+    obj->connect(obj,&QFutureWatcher<QPixmap>::finished,this,&Screenshot::SCREENSHOT_);
+    obj->setFuture(f);
 
+//   QFuture f = QtConcurrent::run(opnew =originalPixmap.scaled(int (1366/i),int (768/i),
+//                                                              Qt::KeepAspectRatio));
+ //    f = QtConcurrent::run([=]() {opnew =originalPixmap.scaled(int (1366/i),int (768/i),
+//                                                                                 Qt::KeepAspectRatio);});
+//<QPixmap>QFuture<void>
     QFileDialog fileDialog(this, tr("Save As"), initialPath);
     fileDialog.setAcceptMode(QFileDialog::AcceptSave);
     fileDialog.setFileMode(QFileDialog::AnyFile);
@@ -152,16 +139,30 @@ void Screenshot::saveScreenshot()
     fileDialog.setDefaultSuffix(format);
     if (fileDialog.exec() != QDialog::Accepted)
         return;
-    const QString fileName = fileDialog.selectedFiles().first();
+  /*  const QString */fileName = fileDialog.selectedFiles().first();
 
-    opnew =originalPixmap.scaled(int (1366/i),int (768/i),
-                                 Qt::KeepAspectRatio);
+//    opnew =originalPixmap.scaled(int (1366/i),int (768/i),
+//                                 Qt::KeepAspectRatio);
 
-    if (!opnew.save(fileName)) {
-        QMessageBox::warning(this, tr("Save Error"), tr("The image could not be saved to \"%1\".")
-                             .arg(QDir::toNativeSeparators(fileName)));
-    }
+
+//    f.waitForFinished();
+//    if (!opnew.save(fileName)) {
+//        QMessageBox::warning(this, tr("Save Error"), tr("The image could not be saved to \"%1\".")
+//                             .arg(QDir::toNativeSeparators(fileName)));
+//    }
+
 }
+
+void Screenshot::SCREENSHOT_()
+{
+    QPixmap n = f.result();
+    if (!n.save(fileName))
+    {
+        QMessageBox::warning(this, tr("Save Error"),
+               tr("The image could not be saved to \"%1\".").arg(QDir::toNativeSeparators(fileName)));
+    };
+};
+
 //! [3]
 
 //! [4]

@@ -8,7 +8,7 @@
 //#include <QFuture>
 
 using namespace std;
-int  i=1;
+
 //! [0]
 Screenshot::Screenshot()
     :  screenshotLabel(new QLabel(this))
@@ -99,27 +99,27 @@ void Screenshot::newScreenshot()
 //! [3]
 QPixmap Screenshot::scale(QPixmap pixmap)
 {
-    pixmap =pixmap.scaled(int (1366/i),int (768/i),Qt::KeepAspectRatio);
-    return pixmap;
+    int i=pow(2, ComboBox->currentIndex());
+    QPixmap newpixmap =pixmap.scaled(int (pixmap.width()/i),int (pixmap.height()/i),Qt::KeepAspectRatio);
+    return newpixmap;
 }
 
 void Screenshot::saveScreenshot()
 {
-    cout<<"ComboBox->currentIndex():"<<
-          ComboBox->currentIndex()<<endl;
-    i=pow(2,(ComboBox->currentIndex()));
+//    cout<<"ComboBox->currentIndex():"<<
+//          ComboBox->currentIndex()<<endl;
+//    i=pow(2,(ComboBox->currentIndex()));
 
-    cout<<"i="<<i<<endl;
+//    cout<<"i="<<i<<endl;
 
     const QString format = "png";
     QString initialPath = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
     if (initialPath.isEmpty())
         initialPath = QDir::currentPath();
     initialPath += tr("/untitled.") + format;
-    QFuture <QPixmap> f = QtConcurrent::run(&Screenshot::scale,this,originalPixmap);
-    QFutureWatcher<QPixmap>* obj = new QFutureWatcher<QPixmap>;
-    obj->connect(obj,&QFutureWatcher<QPixmap>::finished,this,&Screenshot::SCREENSHOT_);
-    obj->setFuture(f);
+    /*QFuture <QPixmap>*/
+    f = QtConcurrent::run(&Screenshot::scale,this,originalPixmap);
+
 
 //   QFuture f = QtConcurrent::run(opnew =originalPixmap.scaled(int (1366/i),int (768/i),
 //                                                              Qt::KeepAspectRatio));
@@ -139,6 +139,10 @@ void Screenshot::saveScreenshot()
     fileDialog.setDefaultSuffix(format);
     if (fileDialog.exec() != QDialog::Accepted)
         return;
+
+    QFutureWatcher<QPixmap>* obj = new QFutureWatcher<QPixmap>;
+    obj->connect(obj,&QFutureWatcher<QPixmap>::finished,this,&Screenshot::SCREENSHOT_);
+    obj->setFuture(f);
   /*  const QString */fileName = fileDialog.selectedFiles().first();
 
 //    opnew =originalPixmap.scaled(int (1366/i),int (768/i),
@@ -185,9 +189,7 @@ void Screenshot::shootScreen()
     if (hideThisWindowCheckBox->isChecked())
         show();
 }
-//! [4]
 
-//! [6]
 void Screenshot::updateCheckBox()
 {
     if (delaySpinBox->value() == 0) {
@@ -197,14 +199,10 @@ void Screenshot::updateCheckBox()
         hideThisWindowCheckBox->setDisabled(false);
     }
 }
-//! [6]
 
-
-//! [10]
 void Screenshot::updateScreenshotLabel()
 {
     screenshotLabel->setPixmap(originalPixmap.scaled(screenshotLabel->size(),
                                                      Qt::KeepAspectRatio,
                                                      Qt::SmoothTransformation));
 }
-//! [10]

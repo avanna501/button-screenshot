@@ -5,11 +5,8 @@
 #include <QtConcurrent>
 #include <QtConcurrent>
 
-//#include <QFuture>
-
 using namespace std;
 
-//! [0]
 Screenshot::Screenshot()
     :  screenshotLabel(new QLabel(this))
 {
@@ -29,7 +26,6 @@ Screenshot::Screenshot()
     connect(delaySpinBox, &QSpinBox::valueChanged,
             this, &Screenshot::updateCheckBox);
 
-//
     ComboBox = new QComboBox;
     QStringList list=(QStringList()<<"1"<<"1/2"<<"1/4"<<"1/8");
     ComboBox->addItems(list);
@@ -50,10 +46,6 @@ Screenshot::Screenshot()
     connect(newScreenshotButton, &QPushButton::clicked, this, &Screenshot::newScreenshot);
     buttonsLayout->addWidget(newScreenshotButton);
 
-//  connect(ComboBox, QOverload<int>::of(&QComboBox::highlighted),[=](int index) , &QWidget::close);
-//           connect(ComboBox, QOverload<int>::of(&QComboBox::highlighted),[=](int index)  { i = &index; });
-//  buttonsLayout->addWidget(ComboBox);
-
     QPushButton *saveScreenshotButton = new QPushButton(tr("Save Screenshot"), this);
     connect(saveScreenshotButton, &QPushButton::clicked, this, &Screenshot::saveScreenshot);
     buttonsLayout->addWidget(saveScreenshotButton);
@@ -69,12 +61,8 @@ Screenshot::Screenshot()
     delaySpinBox->setValue(5);
 
     setWindowTitle(tr("Screenshot"));
- //   qDebug() << i;
- //   resize(300, 200);
 }
-//! [0]
 
-//! [1]
 void Screenshot::resizeEvent(QResizeEvent * /* event */)
 {
         QSize scaledSize = originalPixmap.size();
@@ -83,9 +71,7 @@ void Screenshot::resizeEvent(QResizeEvent * /* event */)
         if (scaledSize != screenshotLabel->pixmap(Qt::ReturnByValue).size())
             updateScreenshotLabel();
 }
-//! [1]
 
-//! [2]
 void Screenshot::newScreenshot()
 {
     if (hideThisWindowCheckBox->isChecked())
@@ -94,9 +80,7 @@ void Screenshot::newScreenshot()
 
     QTimer::singleShot(delaySpinBox->value() * 1000, this, &Screenshot::shootScreen);
 }
-//! [2]
 
-//! [3]
 QPixmap Screenshot::scale(QPixmap pixmap)
 {
     int i=pow(2, ComboBox->currentIndex());
@@ -106,26 +90,14 @@ QPixmap Screenshot::scale(QPixmap pixmap)
 
 void Screenshot::saveScreenshot()
 {
-//    cout<<"ComboBox->currentIndex():"<<
-//          ComboBox->currentIndex()<<endl;
-//    i=pow(2,(ComboBox->currentIndex()));
-
-//    cout<<"i="<<i<<endl;
-
     const QString format = "png";
     QString initialPath = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
     if (initialPath.isEmpty())
         initialPath = QDir::currentPath();
     initialPath += tr("/untitled.") + format;
-    /*QFuture <QPixmap>*/
+
     f = QtConcurrent::run(&Screenshot::scale,this,originalPixmap);
 
-
-//   QFuture f = QtConcurrent::run(opnew =originalPixmap.scaled(int (1366/i),int (768/i),
-//                                                              Qt::KeepAspectRatio));
- //    f = QtConcurrent::run([=]() {opnew =originalPixmap.scaled(int (1366/i),int (768/i),
-//                                                                                 Qt::KeepAspectRatio);});
-//<QPixmap>QFuture<void>
     QFileDialog fileDialog(this, tr("Save As"), initialPath);
     fileDialog.setAcceptMode(QFileDialog::AcceptSave);
     fileDialog.setFileMode(QFileDialog::AnyFile);
@@ -143,18 +115,7 @@ void Screenshot::saveScreenshot()
     QFutureWatcher<QPixmap>* obj = new QFutureWatcher<QPixmap>;
     obj->connect(obj,&QFutureWatcher<QPixmap>::finished,this,&Screenshot::SCREENSHOT_);
     obj->setFuture(f);
-  /*  const QString */fileName = fileDialog.selectedFiles().first();
-
-//    opnew =originalPixmap.scaled(int (1366/i),int (768/i),
-//                                 Qt::KeepAspectRatio);
-
-
-//    f.waitForFinished();
-//    if (!opnew.save(fileName)) {
-//        QMessageBox::warning(this, tr("Save Error"), tr("The image could not be saved to \"%1\".")
-//                             .arg(QDir::toNativeSeparators(fileName)));
-//    }
-
+    fileName = fileDialog.selectedFiles().first();
 }
 
 void Screenshot::SCREENSHOT_()
@@ -167,9 +128,6 @@ void Screenshot::SCREENSHOT_()
     };
 };
 
-//! [3]
-
-//! [4]
 void Screenshot::shootScreen()
 {
     QScreen *screen = QGuiApplication::primaryScreen();

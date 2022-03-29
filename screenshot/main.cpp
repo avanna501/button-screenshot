@@ -3,7 +3,6 @@
 #include <QComboBox>
 #include <QtCore>
 #include <QCoreApplication>
-
 #include "screenshot.h"
 
 int main(int argc, char *argv[])

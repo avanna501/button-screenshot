@@ -4,7 +4,6 @@
 #include <QPixmap>
 #include <QWidget>
 #include <QtCore>
-
 #include <QFuture>
 
 QT_BEGIN_NAMESPACE
